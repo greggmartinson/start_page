@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A personal Safari start page built from a curated bookmark export.">
+  <title>Gregg's Start Page</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --bg-2: #edf5f1;
+      --panel: #ffffff;
+      --ink: #21302f;
+      --muted: #60706d;
+      --line: #dbe4e1;
+      --green: #28765b;
+      --green-dark: #174f3f;
+      --blue: #2f6fbd;
+      --red: #b64b52;
+      --gold: #c8882d;
+      --shadow: 0 18px 45px rgba(31, 45, 43, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(40, 118, 91, 0.12), transparent 28rem),
+        linear-gradient(315deg, rgba(47, 111, 189, 0.10), transparent 30rem),
+        var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr minmax(280px, 420px);
+      gap: 24px;
+      align-items: end;
+      padding: 18px 0 26px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--green-dark);
+      font-size: 0.82rem;
+      font-weight: 750;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(2.1rem, 5vw, 4.8rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .date-line {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .search-panel {
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      border-radius: var(--radius);
+      backdrop-filter: blur(14px);
+    }
+
+    .search-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search-wrap label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    #searchInput {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      background: #f3f7f5;
+      color: var(--ink);
+      padding: 0 14px;
+      outline: none;
+    }
+
+    #searchInput:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(40, 118, 91, 0.14);
+      background: #fff;
+    }
+
+    .clear-button {
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--green-dark);
+      padding: 0 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .clear-button:hover {
+      border-color: var(--green);
+      color: var(--ink);
+    }
+
+    .add-link-button {
+      min-height: 28px;
+      border: 1px solid rgba(40, 118, 91, 0.24);
+      border-radius: 999px;
+      background: var(--green-dark);
+      color: #fff;
+      padding: 0 12px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 750;
+    }
+
+    .add-link-button:hover,
+    .add-link-button:focus-visible {
+      background: var(--green);
+      outline: none;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 0 10px;
+    }
+
+    .quick-row {
+      margin: 12px 0 34px;
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 750;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .section-label::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+    }
+
+    .most-used-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .sections {
+      display: grid;
+      gap: 18px;
+    }
+
+    .add-link-panel {
+      margin: -10px 0 28px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 12px 26px rgba(31, 45, 43, 0.08);
+      padding: 18px;
+    }
+
+    .add-link-panel h2 {
+      margin: 0 0 14px;
+      font-size: 1.22rem;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .add-link-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .form-field.wide {
+      grid-column: 1 / -1;
+    }
+
+    .form-field input {
+      min-height: 46px;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f8faf9;
+      color: var(--ink);
+      padding: 0 12px;
+      outline: none;
+      font-weight: 500;
+    }
+
+    .form-field input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(40, 118, 91, 0.14);
+      background: #fff;
+    }
+
+    .checkbox-field {
+      display: inline-flex;
+      gap: 9px;
+      align-items: center;
+      color: var(--ink);
+      font-size: 0.94rem;
+      font-weight: 700;
+    }
+
+    .checkbox-field input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--green);
+    }
+
+    .form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .save-button,
+    .cancel-button,
+    .clear-added-button {
+      min-height: 42px;
+      border-radius: var(--radius);
+      padding: 0 14px;
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    .save-button {
+      border: 1px solid var(--green-dark);
+      background: var(--green-dark);
+      color: #fff;
+    }
+
+    .save-button:hover,
+    .save-button:focus-visible {
+      background: var(--green);
+      outline: none;
+    }
+
+    .cancel-button,
+    .clear-added-button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--green-dark);
+    }
+
+    .cancel-button:hover,
+    .cancel-button:focus-visible,
+    .clear-added-button:hover,
+    .clear-added-button:focus-visible {
+      border-color: var(--green);
+      outline: none;
+    }
+
+    .clear-added-button {
+      margin-left: auto;
+    }
+
+    .form-status {
+      grid-column: 1 / -1;
+      min-height: 20px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    details.link-section {
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    details.link-section[open] {
+      padding-bottom: 4px;
+    }
+
+    summary {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      list-style: none;
+      cursor: pointer;
+      padding: 4px 0 14px;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .summary-title {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: baseline;
+      min-width: 0;
+    }
+
+    .summary-title h2 {
+      margin: 0;
+      font-size: clamp(1.28rem, 2vw, 1.68rem);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .chevron {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--green-dark);
+      font-weight: 800;
+      transition: transform 180ms ease, border-color 180ms ease;
+    }
+
+    details[open] .chevron {
+      transform: rotate(90deg);
+    }
+
+    .link-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      position: relative;
+      min-height: 118px;
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 6px 16px rgba(31, 45, 43, 0.06);
+      text-decoration: none;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .card:hover,
+    .card:focus-visible {
+      transform: translateY(-2px);
+      border-color: rgba(40, 118, 91, 0.54);
+      box-shadow: 0 15px 28px rgba(31, 45, 43, 0.12);
+      outline: none;
+    }
+
+    .card.most-used {
+      min-height: 104px;
+      background:
+        linear-gradient(135deg, rgba(40, 118, 91, 0.10), rgba(47, 111, 189, 0.06)),
+        #fff;
+    }
+
+    .favicon {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--bg-2);
+      color: var(--green-dark);
+      font-size: 1rem;
+      font-weight: 800;
+      overflow: hidden;
+    }
+
+    .favicon img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+    }
+
+    .card strong {
+      display: block;
+      margin: 1px 0 4px;
+      color: var(--ink);
+      font-size: 1rem;
+      line-height: 1.22;
+      letter-spacing: 0;
+    }
+
+    .card small {
+      display: block;
+      color: var(--green-dark);
+      font-size: 0.82rem;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.35;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 11px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      border-radius: 999px;
+      background: rgba(47, 111, 189, 0.10);
+      color: #315d92;
+      padding: 0 8px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .tag.school {
+      background: rgba(40, 118, 91, 0.11);
+      color: var(--green-dark);
+    }
+
+    .tag.personal {
+      background: rgba(182, 75, 82, 0.11);
+      color: #8a3940;
+    }
+
+    .tag.union {
+      background: rgba(200, 136, 45, 0.15);
+      color: #82591d;
+    }
+
+    .tag.added {
+      background: rgba(40, 118, 91, 0.11);
+      color: var(--green-dark);
+    }
+
+    .empty-state {
+      display: none;
+      margin: 28px 0 0;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.78);
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 960px) {
+      .topbar {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .most-used-grid,
+      .link-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(100% - 22px, 1180px);
+        padding-top: 16px;
+      }
+
+      .topbar {
+        padding-top: 10px;
+      }
+
+      .search-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .clear-button {
+        width: 100%;
+      }
+
+      .add-link-form {
+        grid-template-columns: 1fr;
+      }
+
+      .clear-added-button {
+        margin-left: 0;
+      }
+
+      .most-used-grid,
+      .link-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        min-height: 102px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Safari Home</p>
+        <h1>Gregg's Start Page</h1>
+        <p class="date-line" id="dateLine">A shorter set of links worth seeing every day.</p>
+      </div>
+
+      <section class="search-panel" aria-label="Bookmark search">
+        <div class="search-wrap">
+          <label for="searchInput">Search bookmarks</label>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="Search bookmarks">
+          <button class="clear-button" id="clearSearch" type="button">Clear</button>
+        </div>
+        <div class="stats" aria-live="polite">
+          <span class="pill" id="matchCount">0 links</span>
+          <span class="pill">Curated from Safari</span>
+          <button class="add-link-button" id="showAddLink" type="button">+ Add a link</button>
+        </div>
+      </section>
+    </header>
+
+    <section class="quick-row" aria-labelledby="mostUsedTitle">
+      <h2 class="section-label" id="mostUsedTitle">Most Used</h2>
+      <div class="most-used-grid" id="mostUsedGrid"></div>
+    </section>
+
+    <section class="add-link-panel hidden" id="addLinkPanel" aria-labelledby="addLinkTitle">
+      <h2 id="addLinkTitle">Add a link</h2>
+      <form class="add-link-form" id="addLinkForm">
+        <label class="form-field" for="newLinkTitle">
+          Name
+          <input id="newLinkTitle" name="title" type="text" autocomplete="off" required>
+        </label>
+        <label class="form-field" for="newLinkUrl">
+          Web address
+          <input id="newLinkUrl" name="url" type="text" autocomplete="off" placeholder="example.com" required>
+        </label>
+        <label class="form-field wide" for="newLinkDescription">
+          Note
+          <input id="newLinkDescription" name="description" type="text" autocomplete="off" placeholder="Optional">
+        </label>
+        <label class="checkbox-field">
+          <input id="newLinkMostUsed" name="mostUsed" type="checkbox">
+          Show in Most Used
+        </label>
+        <div class="form-actions">
+          <button class="save-button" type="submit">Save link</button>
+          <button class="cancel-button" id="cancelAddLink" type="button">Cancel</button>
+          <button class="clear-added-button hidden" id="clearAddedLinks" type="button">Clear added links</button>
+        </div>
+        <p class="form-status" id="addLinkStatus" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="sections" id="sections"></section>
+    <p class="empty-state" id="emptyState">No links match that search.</p>
+
+    <footer class="footer">
+      This single file is ready for GitHub Pages or for Safari's homepage setting.
+    </footer>
+  </main>
+
+  <script>
+    const bookmarkSections = [
+      {
+        name: "Daily",
+        links: [
+          {
+            title: "RAHS Dashboard",
+            url: "https://sites.google.com/apps.isd623.org/rahs-dashboard/",
+            description: "Main staff dashboard and resources.",
+            tags: ["school"],
+            mostUsed: true
+          },
+          {
+            title: "Media Center Dash",
+            url: "https://sites.google.com/apps.isd623.org/rahs-media-center/about-us/dash",
+            description: "Media Center home base.",
+            tags: ["school"],
+            mostUsed: true
+          },
+          {
+            title: "Synergy",
+            url: "https://sis.isd623.org/",
+            description: "Student information system.",
+            tags: ["school"],
+            mostUsed: true
+          },
+          {
+            title: "Google Drive",
+            url: "https://drive.google.com/drive/my-drive",
+            description: "Drive files and shared folders.",
+            tags: ["school"],
+            mostUsed: true
+          },
+          {
+            title: "Schoology",
+            url: "http://schoology.isd623.org/home",
+            description: "Course materials and school learning space.",
+            tags: ["school"],
+            mostUsed: true
+          },
+          {
+            title: "Raider Hub",
+            url: "https://isd623.studentsupporttime.com/#!/app/dashboard",
+            description: "Student Support Time dashboard.",
+            tags: ["school"],
+            mostUsed: true
+          },
+          {
+            title: "Canva",
+            url: "https://www.canva.com/",
+            description: "Designs, slides, posters, and media assets.",
+            tags: ["creative"],
+            mostUsed: true
+          }
+        ]
+      },
+      {
+        name: "Media Center",
+        links: [
+          {
+            title: "Destiny",
+            url: "https://destiny.isd623.org/common/servlet/presenthomeform.do?l2m=Home&tm=Home",
+            description: "Library catalog and circulation entry point.",
+            tags: ["library"]
+          },
+          {
+            title: "Daily Sign In",
+            url: "https://docs.google.com/spreadsheets/d/1fKpLXOqOuSHdtZoEy3w58ywVfso9fzMGHe8X2lKMpDA/edit#gid=2031890663",
+            description: "RAHS Media Center sign-in responses.",
+            tags: ["school"]
+          },
+          {
+            title: "Hall Pass",
+            url: "https://isd623.studentsupporttime.com/#!/app/hallpass",
+            description: "Raider Hub hall pass view.",
+            tags: ["school"]
+          },
+          {
+            title: "OverDrive Marketplace",
+            url: "https://marketplace.overdrive.com/",
+            description: "Marketplace landing page.",
+            tags: ["library"]
+          },
+          {
+            title: "Minitex Link Builder",
+            url: "https://elibrarymn.org/learningcenter/links",
+            description: "eLibrary Minnesota link creation guidance.",
+            tags: ["library"]
+          },
+          {
+            title: "Test Day Toolkit",
+            url: "https://testday.collegeboard.org/",
+            description: "College Board testing entry point.",
+            tags: ["testing"]
+          }
+        ]
+      },
+      {
+        name: "District",
+        links: [
+          {
+            title: "RAHS Staff Site",
+            url: "https://sites.google.com/a/apps.isd623.org/rahs-staff/home",
+            description: "Staff homepage.",
+            tags: ["school"]
+          },
+          {
+            title: "Helpdesk Request",
+            url: "http://filemaker.isd623.org/helpdesk-requests/",
+            description: "Generic helpdesk request page.",
+            tags: ["district"]
+          },
+          {
+            title: "Personal Leave Request",
+            url: "https://sites.google.com/a/apps.isd623.org/personal-leave-request/",
+            description: "District leave request page.",
+            tags: ["district"]
+          },
+          {
+            title: "Employee Absence Request",
+            url: "https://docs.google.com/forms/d/e/1FAIpQLSe8ZlrATFV_ztAu_kNAsdVe1hn9B_X-Wb3Msa7O-mX8L7UeiQ/viewform",
+            description: "RAHS employee absence form.",
+            tags: ["district"]
+          }
+        ]
+      },
+      {
+        name: "Union / EM-R",
+        links: [
+          {
+            title: "Education Minnesota Courses",
+            url: "https://educationminnesota.learnupon.com/",
+            description: "MEA learning portal.",
+            tags: ["union"]
+          },
+          {
+            title: "EM-R Link Shortener",
+            url: "https://emroseville.org/go/admin/",
+            description: "YOURLS admin for EM-R links.",
+            tags: ["union"]
+          }
+        ]
+      },
+      {
+        name: "Teaching & Library",
+        links: [
+          {
+            title: "Common Sense Education",
+            url: "https://www.commonsense.org/education/unit-assessments",
+            description: "Digital citizenship and teaching materials.",
+            tags: ["teaching"]
+          },
+          {
+            title: "Edutopia Digital Citizenship",
+            url: "https://www.edutopia.org/article/digital-citizenship-resources",
+            description: "Digital citizenship resource roundup.",
+            tags: ["teaching"]
+          },
+          {
+            title: "Fair Use for Media Literacy",
+            url: "http://cmsimpact.org/code/code-best-practices-fair-use-media-literacy-education/",
+            description: "Best-practices guide for media literacy education.",
+            tags: ["teaching"]
+          },
+          {
+            title: "Unpaywall",
+            url: "https://unpaywall.org/",
+            description: "Open access research lookup.",
+            tags: ["research"]
+          },
+          {
+            title: "Power Searching with Google",
+            url: "http://www.powersearchingwithgoogle.com/",
+            description: "Search skills and lessons.",
+            tags: ["research"]
+          },
+          {
+            title: "MLA Citation Guide",
+            url: "http://library.osu.edu/how-to-find/ask-us/how-do-i-cite-references/mla-citation-guide/#Electronic%20Resources",
+            description: "Citation guidance from Ohio State Libraries.",
+            tags: ["research"]
+          },
+          {
+            title: "WordItOut",
+            url: "https://worditout.com/word-cloud/create",
+            description: "Word cloud creator.",
+            tags: ["teaching"]
+          },
+          {
+            title: "Overleaf",
+            url: "https://www.overleaf.com/project",
+            description: "LaTeX projects.",
+            tags: ["writing"]
+          }
+        ]
+      },
+      {
+        name: "Personal",
+        links: [
+          {
+            title: "Gluten-Free Peasant Bread",
+            url: "https://alexandracooks.com/2014/03/21/gluten-free-peasant-bread/",
+            description: "Alexandra's Kitchen recipe.",
+            tags: ["personal"]
+          },
+          {
+            title: "Wild Rice Soup",
+            url: "https://pinchofyum.com/instant-pot-wild-rice-soup",
+            description: "Pinch of Yum recipe.",
+            tags: ["personal"]
+          },
+          {
+            title: "Gluten-Free Pumpkin Muffins",
+            url: "https://www.kingarthurflour.com/recipes/gluten-free-pumpkin-muffins-recipe",
+            description: "King Arthur recipe.",
+            tags: ["personal"]
+          },
+          {
+            title: "Mindfulness Northwest Poetry",
+            url: "https://www.mindfulnessnorthwest.com/poetry",
+            description: "Poetry collection.",
+            tags: ["personal"]
+          },
+          {
+            title: "TripAdvisor",
+            url: "https://www.tripadvisor.com/",
+            description: "Travel reviews.",
+            tags: ["personal"]
+          },
+          {
+            title: "Electric Bikes",
+            url: "https://upway.co/collections/electric-bikes",
+            description: "Upway e-bike browsing.",
+            tags: ["personal"]
+          }
+        ]
+      }
+    ];
+
+    const searchInput = document.querySelector("#searchInput");
+    const clearSearch = document.querySelector("#clearSearch");
+    const sectionsRoot = document.querySelector("#sections");
+    const mostUsedGrid = document.querySelector("#mostUsedGrid");
+    const matchCount = document.querySelector("#matchCount");
+    const emptyState = document.querySelector("#emptyState");
+    const dateLine = document.querySelector("#dateLine");
+    const showAddLink = document.querySelector("#showAddLink");
+    const addLinkPanel = document.querySelector("#addLinkPanel");
+    const addLinkForm = document.querySelector("#addLinkForm");
+    const cancelAddLink = document.querySelector("#cancelAddLink");
+    const clearAddedLinks = document.querySelector("#clearAddedLinks");
+    const addLinkStatus = document.querySelector("#addLinkStatus");
+    const newLinkTitle = document.querySelector("#newLinkTitle");
+    const newLinkUrl = document.querySelector("#newLinkUrl");
+    const newLinkDescription = document.querySelector("#newLinkDescription");
+    const newLinkMostUsed = document.querySelector("#newLinkMostUsed");
+    const customLinksKey = "gregg-start-page-custom-links";
+
+    let customLinks = loadCustomLinks();
+    let allLinks = [];
+
+    function makeLinkId() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+      return `link-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function loadCustomLinks() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(customLinksKey) || "[]");
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+          .filter((link) => link && link.title && link.url)
+          .map((link) => ({
+            id: link.id || makeLinkId(),
+            title: String(link.title),
+            url: String(link.url),
+            description: String(link.description || "Added locally."),
+            tags: ["added"],
+            mostUsed: Boolean(link.mostUsed)
+          }));
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCustomLinks() {
+      try {
+        localStorage.setItem(customLinksKey, JSON.stringify(customLinks));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function normalizeUrl(value) {
+      const trimmed = value.trim();
+      const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
+        ? trimmed
+        : `https://${trimmed}`;
+      const url = new URL(withProtocol);
+      if (!["http:", "https:"].includes(url.protocol)) {
+        throw new Error("Only web links are supported.");
+      }
+      return url.href;
+    }
+
+    function getSections() {
+      const customSection = customLinks.length
+        ? [{ name: "Added Links", links: customLinks }]
+        : [];
+      return [...customSection, ...bookmarkSections];
+    }
+
+    function refreshLinks() {
+      allLinks = getSections().flatMap((section) =>
+        section.links.map((link) => ({ ...link, section: section.name }))
+      );
+    }
+
+    function updateAddedLinkTools() {
+      clearAddedLinks.classList.toggle("hidden", customLinks.length === 0);
+    }
+
+    function renderPage() {
+      refreshLinks();
+      renderMostUsed();
+      renderSections();
+      updateAddedLinkTools();
+      applyFilter();
+    }
+
+    const hostFromUrl = (url) => {
+      try {
+        return new URL(url).hostname.replace(/^www\./, "");
+      } catch {
+        return url;
+      }
+    };
+
+    const faviconUrl = (url) => {
+      const encoded = encodeURIComponent(url);
+      return `https://www.google.com/s2/favicons?domain_url=${encoded}&sz=64`;
+    };
+
+    const escapeHtml = (value) =>
+      String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+    const cardTemplate = (link, variant = "") => {
+      const host = hostFromUrl(link.url);
+      const tags = (link.tags || [])
+        .map((tag) => `<span class="tag ${escapeHtml(tag)}">${escapeHtml(tag)}</span>`)
+        .join("");
+      const initial = escapeHtml(link.title.slice(0, 1).toUpperCase());
+      const searchText = `${link.title} ${link.description} ${link.section || ""} ${host} ${(link.tags || []).join(" ")}`.toLowerCase();
+
+      return `
+        <a class="card ${variant}" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" data-search="${escapeHtml(searchText)}">
+          <span class="favicon" aria-hidden="true">
+            <img src="${faviconUrl(link.url)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${initial}';">
+          </span>
+          <span>
+            <strong>${escapeHtml(link.title)}</strong>
+            <small>${escapeHtml(host)}</small>
+            <p>${escapeHtml(link.description)}</p>
+            ${tags ? `<span class="tag-row">${tags}</span>` : ""}
+          </span>
+        </a>
+      `;
+    };
+
+    const renderMostUsed = () => {
+      const links = allLinks.filter((link) => link.mostUsed).slice(0, 12);
+      mostUsedGrid.innerHTML = links.map((link) => cardTemplate(link, "most-used")).join("");
+    };
+
+    const renderSections = () => {
+      sectionsRoot.innerHTML = getSections()
+        .map((section, index) => {
+          const sectionLinks = section.links.filter((link) => !link.mostUsed);
+          if (!sectionLinks.length) return "";
+          const saved = localStorage.getItem(`section:${section.name}`);
+          const open = saved === null ? index < 5 : saved === "open";
+          return `
+            <details class="link-section" data-section="${escapeHtml(section.name)}" ${open ? "open" : ""}>
+              <summary>
+                <span class="summary-title">
+                  <h2>${escapeHtml(section.name)}</h2>
+                  <span class="count">${sectionLinks.length} link${sectionLinks.length === 1 ? "" : "s"}</span>
+                </span>
+                <span class="chevron" aria-hidden="true">></span>
+              </summary>
+              <div class="link-grid">
+                ${sectionLinks.map((link) => cardTemplate({ ...link, section: section.name })).join("")}
+              </div>
+            </details>
+          `;
+        })
+        .join("");
+
+      document.querySelectorAll("details.link-section").forEach((detail) => {
+        detail.addEventListener("toggle", () => {
+          if (!searchInput.value.trim()) {
+            localStorage.setItem(
+              `section:${detail.dataset.section}`,
+              detail.open ? "open" : "closed"
+            );
+          }
+        });
+      });
+    };
+
+    const applyFilter = () => {
+      const query = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+
+      document.querySelectorAll(".card").forEach((card) => {
+        const isMatch = !query || card.dataset.search.includes(query);
+        card.classList.toggle("hidden", !isMatch);
+        if (isMatch) visible += 1;
+      });
+
+      document.querySelectorAll("details.link-section").forEach((section) => {
+        const sectionCards = [...section.querySelectorAll(".card")];
+        const hasMatch = sectionCards.some((card) => !card.classList.contains("hidden"));
+        section.classList.toggle("hidden", !hasMatch);
+        if (query && hasMatch) section.open = true;
+      });
+
+      const quickMatches = [...document.querySelectorAll(".quick-row .card")]
+        .some((card) => !card.classList.contains("hidden"));
+      document.querySelector(".quick-row").classList.toggle("hidden", query && !quickMatches);
+      matchCount.textContent = query
+        ? `${visible} match${visible === 1 ? "" : "es"}`
+        : `${allLinks.length} links`;
+      emptyState.style.display = visible === 0 ? "block" : "none";
+    };
+
+    const setDateLine = () => {
+      const formatter = new Intl.DateTimeFormat(undefined, {
+        weekday: "long",
+        month: "long",
+        day: "numeric"
+      });
+      dateLine.textContent = formatter.format(new Date());
+    };
+
+    setDateLine();
+    renderPage();
+
+    searchInput.addEventListener("input", applyFilter);
+    clearSearch.addEventListener("click", () => {
+      searchInput.value = "";
+      applyFilter();
+      searchInput.focus();
+    });
+
+    showAddLink.addEventListener("click", () => {
+      addLinkPanel.classList.toggle("hidden");
+      addLinkStatus.textContent = "";
+      if (!addLinkPanel.classList.contains("hidden")) {
+        newLinkTitle.focus();
+      }
+    });
+
+    cancelAddLink.addEventListener("click", () => {
+      addLinkPanel.classList.add("hidden");
+      addLinkForm.reset();
+      addLinkStatus.textContent = "";
+    });
+
+    clearAddedLinks.addEventListener("click", () => {
+      if (!customLinks.length) return;
+      const shouldClear = window.confirm("Remove all links you added from this browser?");
+      if (!shouldClear) return;
+      customLinks = [];
+      saveCustomLinks();
+      addLinkStatus.textContent = "Added links cleared.";
+      renderPage();
+    });
+
+    addLinkForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      let url;
+      try {
+        url = normalizeUrl(newLinkUrl.value);
+      } catch {
+        addLinkStatus.textContent = "Enter a valid web address.";
+        newLinkUrl.focus();
+        return;
+      }
+
+      const title = newLinkTitle.value.trim();
+      if (!title) {
+        addLinkStatus.textContent = "Enter a name for the link.";
+        newLinkTitle.focus();
+        return;
+      }
+
+      const newLink = {
+        id: makeLinkId(),
+        title,
+        url,
+        description: newLinkDescription.value.trim() || "Added locally.",
+        tags: ["added"],
+        mostUsed: newLinkMostUsed.checked
+      };
+
+      customLinks.push(newLink);
+      const persisted = saveCustomLinks();
+      addLinkForm.reset();
+      addLinkPanel.classList.add("hidden");
+      addLinkStatus.textContent = persisted
+        ? "Link added."
+        : "Link added for this session. Safari did not allow it to be saved.";
+      renderPage();
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInput.focus();
+      }
+    });
+  </script>
+</body>
+</html>
