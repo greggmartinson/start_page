@@ -744,7 +744,7 @@
       <section class="search-panel" aria-label="Bookmark search">
         <div class="search-wrap">
           <label for="searchInput">Search bookmarks</label>
-          <input id="searchInput" type="search" autocomplete="off" placeholder="Search bookmarks" autofocus>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="Search bookmarks">
           <button class="clear-button" id="clearSearch" type="button">Clear</button>
         </div>
         <div class="stats" aria-live="polite">
@@ -1438,15 +1438,14 @@
       dateLine.textContent = formatter.format(new Date());
     }
 
-    function focusTopBar() {
+    function showPageTop() {
       window.scrollTo({ top: 0, left: 0 });
-      requestAnimationFrame(() => searchInput.focus({ preventScroll: true }));
     }
 
     renderCategoryOptions();
     setDateLine();
     renderPage();
-    focusTopBar();
+    showPageTop();
 
     searchInput.addEventListener("input", applyFilter);
     clearSearch.addEventListener("click", () => {
