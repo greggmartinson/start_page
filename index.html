@@ -812,7 +812,7 @@
         </label>
         <label class="checkbox-field">
           <input id="newLinkMostUsed" name="mostUsed" type="checkbox">
-          Show in Most Used
+          Also show in Most Used
         </label>
         <div class="form-actions">
           <button class="save-button" type="submit">Save link</button>
@@ -1450,7 +1450,7 @@
         return sortedLinks(allLinks.filter((link) => link.mostUsed), mostUsedContext);
       }
       const section = getSections().find((item) => item.name === context);
-      return section ? sortedLinks(section.links.filter((link) => !link.mostUsed), context) : [];
+      return section ? sortedLinks(section.links.filter((link) => !link.mostUsed || link.custom), context) : [];
     }
 
     function moveLink(id, context, direction) {
@@ -1525,7 +1525,10 @@
     function renderSections() {
       sectionsRoot.innerHTML = getSections()
         .map((section, index) => {
-          const sectionLinks = sortedLinks(section.links.filter((link) => !link.mostUsed), section.name);
+          const sectionLinks = sortedLinks(
+            section.links.filter((link) => !link.mostUsed || link.custom),
+            section.name
+          );
           if (!sectionLinks.length) return "";
           const saved = getStoredValue(`section:${section.name}`) ?? embeddedState.sections?.[section.name] ?? null;
           const open = forcedOpenSection === section.name || (saved === null ? index < 5 : saved === "open");
@@ -1715,6 +1718,7 @@
       forcedOpenSection = category;
       highlightedLinkId = newLink.id;
       customLinks.push(newLink);
+      placeLinkFirst(newLink.id, category);
       if (newLink.mostUsed) {
         placeLinkFirst(newLink.id, mostUsedContext);
       }
@@ -1723,7 +1727,12 @@
         addLinkForm.reset();
         newLinkCategory.value = "Personal";
         addLinkPanel.classList.add("hidden");
-        showAddLinkStatus("Link added.", "success");
+        showAddLinkStatus(
+          newLink.mostUsed
+            ? `Link added to ${category} and Most Used.`
+            : `Link added to ${category}.`,
+          "success"
+        );
       } else {
         showAddLinkStatus(
           "Link added for this tab, but Safari did not allow it to be saved. Try opening the page from its GitHub Pages web address instead of the local file.",
