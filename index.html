@@ -1467,6 +1467,14 @@
       renderPage();
     }
 
+    function placeLinkFirst(id, context) {
+      const ids = groupLinksForContext(context)
+        .map((link) => link.id)
+        .filter((linkId) => linkId !== id);
+      linkOrder[context] = [id, ...ids];
+      saveLinkOrder();
+    }
+
     function attachCardHandlers(root = document) {
       root.querySelectorAll("[data-delete-id]").forEach((button) => {
         button.addEventListener("click", () => {
@@ -1507,7 +1515,7 @@
     }
 
     function renderMostUsed() {
-      const links = sortedLinks(allLinks.filter((link) => link.mostUsed), mostUsedContext).slice(0, 12);
+      const links = sortedLinks(allLinks.filter((link) => link.mostUsed), mostUsedContext);
       mostUsedGrid.innerHTML = links
         .map((link, index) => cardTemplate(link, "most-used", mostUsedContext, index, links.length))
         .join("");
@@ -1707,6 +1715,9 @@
       forcedOpenSection = category;
       highlightedLinkId = newLink.id;
       customLinks.push(newLink);
+      if (newLink.mostUsed) {
+        placeLinkFirst(newLink.id, mostUsedContext);
+      }
       const persisted = saveCustomLinks();
       if (persisted) {
         addLinkForm.reset();
