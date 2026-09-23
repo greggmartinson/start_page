@@ -436,6 +436,22 @@
         #fff;
     }
 
+    .card.just-added {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(40, 118, 91, 0.18), 0 15px 28px rgba(31, 45, 43, 0.12);
+      animation: added-pulse 1.7s ease-out;
+    }
+
+    @keyframes added-pulse {
+      0% {
+        transform: translateY(-2px);
+      }
+
+      100% {
+        transform: translateY(0);
+      }
+    }
+
     .card-link {
       min-height: inherit;
       display: grid;
@@ -737,6 +753,10 @@
         scroll-behavior: auto !important;
         transition: none !important;
       }
+
+      .card.just-added {
+        animation: none;
+      }
     }
   </style>
 </head>
@@ -759,6 +779,7 @@
           <span class="pill" id="matchCount">0 links</span>
           <span class="pill">Curated from Safari</span>
           <button class="tool-button" id="showAddLink" type="button">+ Add a link</button>
+          <button class="tool-button hidden" id="downloadPageFile" type="button">Download updated file</button>
           <button class="tool-button" id="toggleCompact" type="button">Compact view</button>
           <button class="restore-button hidden" id="restoreDeletedLinks" type="button">Restore deleted links</button>
         </div>
@@ -809,6 +830,8 @@
       This single file is ready for GitHub Pages or for Safari's homepage setting.
     </footer>
   </main>
+
+  <script type="application/json" id="savedPageState">{"customLinks":[],"deletedLinkIds":[],"linkOrder":{},"compactMode":false,"sections":{}}</script>
 
   <script>
     const bookmarkSections = [
@@ -1094,6 +1117,7 @@
     const emptyState = document.querySelector("#emptyState");
     const dateLine = document.querySelector("#dateLine");
     const showAddLink = document.querySelector("#showAddLink");
+    const downloadPageFile = document.querySelector("#downloadPageFile");
     const toggleCompact = document.querySelector("#toggleCompact");
     const addLinkPanel = document.querySelector("#addLinkPanel");
     const addLinkForm = document.querySelector("#addLinkForm");
@@ -1106,17 +1130,30 @@
     const newLinkCategory = document.querySelector("#newLinkCategory");
     const newLinkDescription = document.querySelector("#newLinkDescription");
     const newLinkMostUsed = document.querySelector("#newLinkMostUsed");
+    const savedPageState = document.querySelector("#savedPageState");
     const customLinksKey = "gregg-start-page-custom-links";
     const deletedLinksKey = "gregg-start-page-deleted-links";
     const orderKey = "gregg-start-page-link-order";
     const compactKey = "gregg-start-page-compact-view";
     const mostUsedContext = "Most Used";
+    const embeddedState = readEmbeddedState();
 
     let customLinks = loadCustomLinks();
     let deletedLinkIds = loadDeletedLinkIds();
     let linkOrder = loadLinkOrder();
-    let compactMode = getStoredValue(compactKey) === "true";
+    const storedCompactMode = getStoredValue(compactKey);
+    let compactMode = storedCompactMode === null ? embeddedState.compactMode === true : storedCompactMode === "true";
     let allLinks = [];
+    let highlightedLinkId = "";
+    let forcedOpenSection = "";
+
+    function readEmbeddedState() {
+      try {
+        return JSON.parse(savedPageState?.textContent || "{}");
+      } catch {
+        return {};
+      }
+    }
 
     function getStoredValue(key) {
       try {
@@ -1153,7 +1190,10 @@
 
     function loadCustomLinks() {
       try {
-        const parsed = JSON.parse(getStoredValue(customLinksKey) || "[]");
+        const storedValue = getStoredValue(customLinksKey);
+        const embeddedLinks = Array.isArray(embeddedState.customLinks) ? embeddedState.customLinks : [];
+        const source = storedValue && storedValue !== "[]" ? storedValue : JSON.stringify(embeddedLinks);
+        const parsed = JSON.parse(source || "[]");
         if (!Array.isArray(parsed)) return [];
         return parsed
           .filter((link) => link && link.title && link.url)
@@ -1174,7 +1214,10 @@
 
     function loadDeletedLinkIds() {
       try {
-        const parsed = JSON.parse(getStoredValue(deletedLinksKey) || "[]");
+        const storedValue = getStoredValue(deletedLinksKey);
+        const embeddedIds = Array.isArray(embeddedState.deletedLinkIds) ? embeddedState.deletedLinkIds : [];
+        const source = storedValue && storedValue !== "[]" ? storedValue : JSON.stringify(embeddedIds);
+        const parsed = JSON.parse(source || "[]");
         return Array.isArray(parsed) ? parsed.map(String) : [];
       } catch {
         return [];
@@ -1183,7 +1226,12 @@
 
     function loadLinkOrder() {
       try {
-        const parsed = JSON.parse(getStoredValue(orderKey) || "{}");
+        const storedValue = getStoredValue(orderKey);
+        const embeddedOrder = embeddedState.linkOrder && typeof embeddedState.linkOrder === "object"
+          ? embeddedState.linkOrder
+          : {};
+        const source = storedValue && storedValue !== "{}" ? storedValue : JSON.stringify(embeddedOrder);
+        const parsed = JSON.parse(source || "{}");
         return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
       } catch {
         return {};
@@ -1191,7 +1239,12 @@
     }
 
     function saveCustomLinks() {
-      const cleanLinks = customLinks.map((link) => ({
+      const cleanLinks = cleanCustomLinks(customLinks);
+      return setStoredValue(customLinksKey, JSON.stringify(cleanLinks));
+    }
+
+    function cleanCustomLinks(links) {
+      return links.map((link) => ({
         id: link.id,
         title: link.title,
         url: link.url,
@@ -1199,7 +1252,6 @@
         category: link.category,
         mostUsed: Boolean(link.mostUsed)
       }));
-      return setStoredValue(customLinksKey, JSON.stringify(cleanLinks));
     }
 
     function saveDeletedLinkIds() {
@@ -1208,6 +1260,66 @@
 
     function saveLinkOrder() {
       return setStoredValue(orderKey, JSON.stringify(linkOrder));
+    }
+
+    function hasLinkOrderChanges() {
+      return Object.values(linkOrder).some((ids) => Array.isArray(ids) && ids.length > 0);
+    }
+
+    function hasPageChanges() {
+      return customLinks.length > 0 || deletedLinkIds.length > 0 || hasLinkOrderChanges();
+    }
+
+    function getSectionState() {
+      const sections = {};
+      document.querySelectorAll("details.link-section").forEach((section) => {
+        sections[section.dataset.section] = section.open ? "open" : "closed";
+      });
+      return sections;
+    }
+
+    function portableState() {
+      return {
+        customLinks: cleanCustomLinks(customLinks),
+        deletedLinkIds: deletedLinkIds.map(String),
+        linkOrder,
+        compactMode,
+        sections: getSectionState()
+      };
+    }
+
+    function safeJsonForHtml(value) {
+      return JSON.stringify(value).replaceAll("<", "\\u003c");
+    }
+
+    function downloadUpdatedHtml() {
+      const clone = document.documentElement.cloneNode(true);
+      const stateNode = clone.querySelector("#savedPageState");
+      const addPanel = clone.querySelector("#addLinkPanel");
+      const status = clone.querySelector("#addLinkStatus");
+
+      if (stateNode) {
+        stateNode.textContent = safeJsonForHtml(portableState());
+      }
+      if (addPanel) {
+        addPanel.classList.add("hidden");
+      }
+      if (status) {
+        status.textContent = "";
+        status.removeAttribute("data-state");
+      }
+      clone.querySelectorAll(".just-added").forEach((card) => card.classList.remove("just-added"));
+
+      const file = new Blob([`<!doctype html>\n${clone.outerHTML}`], { type: "text/html" });
+      const url = URL.createObjectURL(file);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "index.html";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      showAddLinkStatus("Downloaded an updated index.html with your current changes.", "success");
     }
 
     function normalizeUrl(value) {
@@ -1262,6 +1374,7 @@
     function updateLinkTools() {
       clearAddedLinks.classList.toggle("hidden", customLinks.length === 0);
       restoreDeletedLinks.classList.toggle("hidden", deletedLinkIds.length === 0);
+      downloadPageFile.classList.toggle("hidden", !hasPageChanges());
       document.body.classList.toggle("compact", compactMode);
       toggleCompact.textContent = compactMode ? "Detailed view" : "Compact view";
     }
@@ -1311,7 +1424,7 @@
       const searchText = `${link.title} ${link.description} ${link.section || ""} ${host} ${(link.tags || []).join(" ")}`.toLowerCase();
 
       return `
-        <article class="card ${variant || ""}" data-id="${escapeHtml(link.id)}" data-custom="${link.custom ? "true" : "false"}" data-search="${escapeHtml(searchText)}">
+        <article class="card ${variant || ""} ${link.id === highlightedLinkId ? "just-added" : ""}" data-id="${escapeHtml(link.id)}" data-custom="${link.custom ? "true" : "false"}" data-search="${escapeHtml(searchText)}">
           <a class="card-link" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
             <span class="favicon" aria-hidden="true">
               <img src="${faviconUrl(link.url)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${initial}';">
@@ -1406,8 +1519,8 @@
         .map((section, index) => {
           const sectionLinks = sortedLinks(section.links.filter((link) => !link.mostUsed), section.name);
           if (!sectionLinks.length) return "";
-          const saved = getStoredValue(`section:${section.name}`);
-          const open = saved === null ? index < 5 : saved === "open";
+          const saved = getStoredValue(`section:${section.name}`) ?? embeddedState.sections?.[section.name] ?? null;
+          const open = forcedOpenSection === section.name || (saved === null ? index < 5 : saved === "open");
           return `
             <details class="link-section" data-section="${escapeHtml(section.name)}" ${open ? "open" : ""}>
               <summary>
@@ -1464,6 +1577,20 @@
       emptyState.style.display = visible === 0 ? "block" : "none";
     }
 
+    function revealLink(id) {
+      requestAnimationFrame(() => {
+        const card = [...document.querySelectorAll(".card")].find((item) => item.dataset.id === id);
+        if (!card) return;
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.setTimeout(() => {
+          card.classList.remove("just-added");
+          if (highlightedLinkId === id) {
+            highlightedLinkId = "";
+          }
+        }, 2200);
+      });
+    }
+
     function setDateLine() {
       const formatter = new Intl.DateTimeFormat(undefined, {
         weekday: "long",
@@ -1503,6 +1630,8 @@
         newLinkTitle.focus();
       }
     });
+
+    downloadPageFile.addEventListener("click", downloadUpdatedHtml);
 
     toggleCompact.addEventListener("click", () => {
       compactMode = !compactMode;
@@ -1574,6 +1703,9 @@
         custom: true
       };
 
+      searchInput.value = "";
+      forcedOpenSection = category;
+      highlightedLinkId = newLink.id;
       customLinks.push(newLink);
       const persisted = saveCustomLinks();
       if (persisted) {
@@ -1588,6 +1720,7 @@
         );
       }
       renderPage();
+      revealLink(newLink.id);
     });
 
     window.addEventListener("keydown", (event) => {
