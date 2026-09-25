@@ -90,7 +90,8 @@
     }
 
     .search-panel,
-    .add-link-panel {
+    .add-link-panel,
+    .category-editor-panel {
       background: rgba(255, 255, 255, 0.88);
       border: 1px solid var(--line);
       box-shadow: var(--shadow);
@@ -149,6 +150,7 @@
     .clear-added-button,
     .restore-button,
     .move-link,
+    .category-link,
     .delete-link {
       cursor: pointer;
       font-weight: 750;
@@ -250,12 +252,14 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .add-link-panel {
+    .add-link-panel,
+    .category-editor-panel {
       margin: -10px 0 28px;
       padding: 18px;
     }
 
-    .add-link-panel h2 {
+    .add-link-panel h2,
+    .category-editor-panel h2 {
       margin: 0 0 14px;
       font-size: 1.22rem;
       line-height: 1.2;
@@ -277,6 +281,7 @@
     }
 
     .form-field.wide,
+    .category-actions,
     .form-actions,
     .form-status {
       grid-column: 1 / -1;
@@ -309,6 +314,50 @@
       flex-wrap: wrap;
       gap: 10px;
       align-items: center;
+    }
+
+    .category-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: -2px;
+    }
+
+    .inline-status {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .inline-status[data-state="success"] {
+      color: var(--green-dark);
+    }
+
+    .inline-status[data-state="error"] {
+      color: #9d1f1f;
+    }
+
+    .category-editor-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(170px, 0.55fr) minmax(170px, 0.55fr);
+      gap: 12px;
+      align-items: end;
+    }
+
+    .category-editor-heading {
+      min-width: 0;
+    }
+
+    .category-editor-heading h2 {
+      margin-bottom: 5px;
+    }
+
+    .category-editor-link {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      overflow-wrap: anywhere;
     }
 
     .save-button,
@@ -458,7 +507,7 @@
       grid-template-columns: 44px 1fr;
       gap: 12px;
       align-items: start;
-      padding: 16px 76px 16px 16px;
+      padding: 16px 112px 16px 16px;
       color: inherit;
       text-decoration: none;
     }
@@ -474,11 +523,12 @@
       top: 9px;
       right: 9px;
       display: grid;
-      grid-template-columns: repeat(3, 30px);
+      grid-template-columns: repeat(4, 30px);
       gap: 4px;
     }
 
     .move-link,
+    .category-link,
     .delete-link {
       width: 30px;
       height: 30px;
@@ -495,6 +545,11 @@
       color: var(--green-dark);
     }
 
+    .category-link {
+      border: 1px solid rgba(49, 93, 146, 0.22);
+      color: #315d92;
+    }
+
     .move-link:disabled {
       opacity: 0.32;
       cursor: default;
@@ -504,6 +559,13 @@
       border: 1px solid rgba(182, 75, 82, 0.22);
       color: var(--red);
       font-weight: 900;
+    }
+
+    .category-link:hover,
+    .category-link:focus-visible {
+      border-color: #315d92;
+      background: #f3f7ff;
+      outline: none;
     }
 
     .delete-link:hover,
@@ -647,7 +709,7 @@
     .compact .card-link {
       grid-template-columns: 28px 1fr;
       gap: 8px;
-      padding: 9px 66px 9px 10px;
+      padding: 9px 112px 9px 10px;
     }
 
     .compact .favicon {
@@ -678,11 +740,12 @@
     .compact .card-controls {
       top: 8px;
       right: 8px;
-      grid-template-columns: repeat(3, 24px);
+      grid-template-columns: repeat(4, 24px);
       gap: 3px;
     }
 
     .compact .move-link,
+    .compact .category-link,
     .compact .delete-link {
       width: 24px;
       height: 24px;
@@ -726,7 +789,8 @@
       }
 
       .search-wrap,
-      .add-link-form {
+      .add-link-form,
+      .category-editor-form {
         grid-template-columns: 1fr;
       }
 
@@ -806,6 +870,14 @@
           Category
           <select id="newLinkCategory" name="category" required></select>
         </label>
+        <label class="form-field" for="newCategoryName">
+          New category
+          <input id="newCategoryName" name="newCategoryName" type="text" autocomplete="off" placeholder="Optional">
+        </label>
+        <div class="category-actions">
+          <button class="cancel-button" id="addCategoryButton" type="button">Add category</button>
+          <span class="inline-status" id="categoryStatus" aria-live="polite"></span>
+        </div>
         <label class="form-field" for="newLinkDescription">
           Note
           <input id="newLinkDescription" name="description" type="text" autocomplete="off" placeholder="Optional">
@@ -823,6 +895,29 @@
       </form>
     </section>
 
+    <section class="category-editor-panel hidden" id="categoryEditorPanel" aria-labelledby="categoryEditorTitle">
+      <form class="category-editor-form" id="categoryEditorForm">
+        <div class="category-editor-heading">
+          <p class="eyebrow">Move link</p>
+          <h2 id="categoryEditorTitle">Change category</h2>
+          <p class="category-editor-link" id="categoryEditorLinkName"></p>
+        </div>
+        <label class="form-field" for="moveLinkCategory">
+          Category
+          <select id="moveLinkCategory" name="moveLinkCategory" required></select>
+        </label>
+        <label class="form-field" for="moveNewCategoryName">
+          New category
+          <input id="moveNewCategoryName" name="moveNewCategoryName" type="text" autocomplete="off" placeholder="Optional">
+        </label>
+        <div class="form-actions">
+          <button class="save-button" type="submit">Move link</button>
+          <button class="cancel-button" id="cancelMoveLink" type="button">Cancel</button>
+        </div>
+        <p class="form-status" id="moveLinkStatus" aria-live="polite"></p>
+      </form>
+    </section>
+
     <section class="sections" id="sections"></section>
     <p class="empty-state" id="emptyState">No links match that search.</p>
 
@@ -831,7 +926,7 @@
     </footer>
   </main>
 
-  <script type="application/json" id="savedPageState">{"customLinks":[],"deletedLinkIds":[],"linkOrder":{},"compactMode":false,"sections":{}}</script>
+  <script type="application/json" id="savedPageState">{"customLinks":[],"customCategories":[],"linkCategoryOverrides":{},"deletedLinkIds":[],"linkOrder":{},"compactMode":false,"sections":{}}</script>
 
   <script>
     const bookmarkSections = [
@@ -1105,7 +1200,7 @@
       }
     ];
 
-    const categoryNames = bookmarkSections
+    const baseCategoryNames = bookmarkSections
       .map((section) => section.name)
       .filter((name) => name !== "Daily");
 
@@ -1128,16 +1223,30 @@
     const newLinkTitle = document.querySelector("#newLinkTitle");
     const newLinkUrl = document.querySelector("#newLinkUrl");
     const newLinkCategory = document.querySelector("#newLinkCategory");
+    const newCategoryName = document.querySelector("#newCategoryName");
+    const addCategoryButton = document.querySelector("#addCategoryButton");
+    const categoryStatus = document.querySelector("#categoryStatus");
     const newLinkDescription = document.querySelector("#newLinkDescription");
     const newLinkMostUsed = document.querySelector("#newLinkMostUsed");
+    const categoryEditorPanel = document.querySelector("#categoryEditorPanel");
+    const categoryEditorForm = document.querySelector("#categoryEditorForm");
+    const categoryEditorLinkName = document.querySelector("#categoryEditorLinkName");
+    const moveLinkCategory = document.querySelector("#moveLinkCategory");
+    const moveNewCategoryName = document.querySelector("#moveNewCategoryName");
+    const cancelMoveLink = document.querySelector("#cancelMoveLink");
+    const moveLinkStatus = document.querySelector("#moveLinkStatus");
     const savedPageState = document.querySelector("#savedPageState");
     const customLinksKey = "gregg-start-page-custom-links";
+    const customCategoriesKey = "gregg-start-page-custom-categories";
+    const categoryOverridesKey = "gregg-start-page-category-overrides";
     const deletedLinksKey = "gregg-start-page-deleted-links";
     const orderKey = "gregg-start-page-link-order";
     const compactKey = "gregg-start-page-compact-view";
     const mostUsedContext = "Most Used";
     const embeddedState = readEmbeddedState();
 
+    let customCategories = loadCustomCategories();
+    let linkCategoryOverrides = loadCategoryOverrides();
     let customLinks = loadCustomLinks();
     let deletedLinkIds = loadDeletedLinkIds();
     let linkOrder = loadLinkOrder();
@@ -1146,6 +1255,7 @@
     let allLinks = [];
     let highlightedLinkId = "";
     let forcedOpenSection = "";
+    let categoryEditLinkId = "";
 
     function readEmbeddedState() {
       try {
@@ -1181,6 +1291,68 @@
       }
     }
 
+    function showCategoryStatus(message, state = "") {
+      categoryStatus.textContent = message;
+      if (state) {
+        categoryStatus.dataset.state = state;
+      } else {
+        delete categoryStatus.dataset.state;
+      }
+    }
+
+    function showMoveLinkStatus(message, state = "") {
+      moveLinkStatus.textContent = message;
+      if (state) {
+        moveLinkStatus.dataset.state = state;
+      } else {
+        delete moveLinkStatus.dataset.state;
+      }
+    }
+
+    function cleanCategoryName(value) {
+      return String(value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function sameCategoryName(left, right) {
+      return left.toLowerCase() === right.toLowerCase();
+    }
+
+    function getCategoryNames() {
+      const names = [...baseCategoryNames];
+      customCategories.forEach((name) => {
+        if (!names.some((item) => sameCategoryName(item, name))) {
+          names.push(name);
+        }
+      });
+      customLinks.forEach((link) => {
+        const name = cleanCategoryName(link.category);
+        if (name && !names.some((item) => sameCategoryName(item, name))) {
+          names.push(name);
+        }
+      });
+      Object.values(linkCategoryOverrides).forEach((name) => {
+        const cleanName = cleanCategoryName(name);
+        if (cleanName && !names.some((item) => sameCategoryName(item, cleanName))) {
+          names.push(cleanName);
+        }
+      });
+      return names;
+    }
+
+    function ensureCategory(name) {
+      const cleanName = cleanCategoryName(name);
+      if (!cleanName) return "";
+      if (sameCategoryName(cleanName, "Daily") || sameCategoryName(cleanName, mostUsedContext)) {
+        return "";
+      }
+      const existing = getCategoryNames().find((item) => sameCategoryName(item, cleanName));
+      if (existing) return existing;
+      customCategories.push(cleanName);
+      saveCustomCategories();
+      renderAllCategoryOptions(cleanName);
+      return cleanName;
+    }
+
     function makeLinkId() {
       if (window.crypto && typeof window.crypto.randomUUID === "function") {
         return window.crypto.randomUUID();
@@ -1202,13 +1374,54 @@
             title: String(link.title),
             url: String(link.url),
             description: String(link.description || "Added locally."),
-            category: categoryNames.includes(link.category) ? link.category : "Personal",
+            category: cleanCategoryName(link.category) || "Personal",
             tags: ["added"],
             mostUsed: Boolean(link.mostUsed),
             custom: true
           }));
       } catch {
         return [];
+      }
+    }
+
+    function loadCustomCategories() {
+      try {
+        const storedValue = getStoredValue(customCategoriesKey);
+        const embeddedCategories = Array.isArray(embeddedState.customCategories)
+          ? embeddedState.customCategories
+          : [];
+        const source = storedValue && storedValue !== "[]" ? storedValue : JSON.stringify(embeddedCategories);
+        const parsed = JSON.parse(source || "[]");
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+          .map(cleanCategoryName)
+          .filter((name, index, names) =>
+            name &&
+            !sameCategoryName(name, "Daily") &&
+            !sameCategoryName(name, mostUsedContext) &&
+            names.findIndex((item) => sameCategoryName(item, name)) === index
+          );
+      } catch {
+        return [];
+      }
+    }
+
+    function loadCategoryOverrides() {
+      try {
+        const storedValue = getStoredValue(categoryOverridesKey);
+        const embeddedOverrides = embeddedState.linkCategoryOverrides && typeof embeddedState.linkCategoryOverrides === "object"
+          ? embeddedState.linkCategoryOverrides
+          : {};
+        const source = storedValue && storedValue !== "{}" ? storedValue : JSON.stringify(embeddedOverrides);
+        const parsed = JSON.parse(source || "{}");
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+        return Object.fromEntries(
+          Object.entries(parsed)
+            .map(([id, category]) => [String(id), cleanCategoryName(category)])
+            .filter(([, category]) => category)
+        );
+      } catch {
+        return {};
       }
     }
 
@@ -1243,6 +1456,14 @@
       return setStoredValue(customLinksKey, JSON.stringify(cleanLinks));
     }
 
+    function saveCustomCategories() {
+      return setStoredValue(customCategoriesKey, JSON.stringify(customCategories));
+    }
+
+    function saveCategoryOverrides() {
+      return setStoredValue(categoryOverridesKey, JSON.stringify(linkCategoryOverrides));
+    }
+
     function cleanCustomLinks(links) {
       return links.map((link) => ({
         id: link.id,
@@ -1266,8 +1487,12 @@
       return Object.values(linkOrder).some((ids) => Array.isArray(ids) && ids.length > 0);
     }
 
+    function hasCategoryChanges() {
+      return customCategories.length > 0 || Object.keys(linkCategoryOverrides).length > 0;
+    }
+
     function hasPageChanges() {
-      return customLinks.length > 0 || deletedLinkIds.length > 0 || hasLinkOrderChanges();
+      return customLinks.length > 0 || deletedLinkIds.length > 0 || hasLinkOrderChanges() || hasCategoryChanges();
     }
 
     function getSectionState() {
@@ -1281,6 +1506,8 @@
     function portableState() {
       return {
         customLinks: cleanCustomLinks(customLinks),
+        customCategories,
+        linkCategoryOverrides,
         deletedLinkIds: deletedLinkIds.map(String),
         linkOrder,
         compactMode,
@@ -1296,7 +1523,9 @@
       const clone = document.documentElement.cloneNode(true);
       const stateNode = clone.querySelector("#savedPageState");
       const addPanel = clone.querySelector("#addLinkPanel");
+      const movePanel = clone.querySelector("#categoryEditorPanel");
       const status = clone.querySelector("#addLinkStatus");
+      const moveStatus = clone.querySelector("#moveLinkStatus");
 
       if (stateNode) {
         stateNode.textContent = safeJsonForHtml(portableState());
@@ -1304,9 +1533,16 @@
       if (addPanel) {
         addPanel.classList.add("hidden");
       }
+      if (movePanel) {
+        movePanel.classList.add("hidden");
+      }
       if (status) {
         status.textContent = "";
         status.removeAttribute("data-state");
+      }
+      if (moveStatus) {
+        moveStatus.textContent = "";
+        moveStatus.removeAttribute("data-state");
       }
       clone.querySelectorAll(".just-added").forEach((card) => card.classList.remove("just-added"));
 
@@ -1338,6 +1574,36 @@
       return deletedLinkIds.includes(link.id);
     }
 
+    function collectVisibleLinks() {
+      const builtInLinks = bookmarkSections.flatMap((section) =>
+        section.links
+          .filter((link) => !isDeleted(link))
+          .map((link) => {
+            const categoryOverride = cleanCategoryName(linkCategoryOverrides[link.id]);
+            const category = categoryOverride || (section.name === "Daily" ? "" : section.name);
+            return {
+              ...link,
+              category,
+              originalCategory: section.name,
+              recategorized: Boolean(categoryOverride),
+              custom: false,
+              section: category || section.name
+            };
+          })
+      );
+
+      const addedLinks = customLinks
+        .filter((link) => !isDeleted(link))
+        .map((link) => ({
+          ...link,
+          category: cleanCategoryName(link.category) || "Personal",
+          section: cleanCategoryName(link.category) || "Personal",
+          custom: true
+        }));
+
+      return [...builtInLinks, ...addedLinks];
+    }
+
     function sortedLinks(links, context) {
       const savedOrder = Array.isArray(linkOrder[context]) ? linkOrder[context] : [];
       const positions = new Map(savedOrder.map((id, index) => [id, index]));
@@ -1350,25 +1616,21 @@
     }
 
     function getSections() {
-      const visibleBookmarkSections = bookmarkSections
-        .map((section) => {
-          const builtInLinks = section.links.filter((link) => !isDeleted(link));
-          const addedLinks = customLinks.filter((link) =>
-            link.category === section.name && !isDeleted(link)
-          );
-          return {
-            ...section,
-            links: sortedLinks([...builtInLinks, ...addedLinks], section.name)
-          };
-        })
+      const visibleLinks = collectVisibleLinks().filter((link) => link.category);
+      const sections = getCategoryNames().map((name) => ({
+        name,
+        links: sortedLinks(
+          visibleLinks.filter((link) => sameCategoryName(link.category, name)),
+          name
+        )
+      }));
+
+      return sections
         .filter((section) => section.links.length > 0);
-      return visibleBookmarkSections;
     }
 
     function refreshLinks() {
-      allLinks = getSections().flatMap((section) =>
-        section.links.map((link) => ({ ...link, section: section.name }))
-      );
+      allLinks = collectVisibleLinks();
     }
 
     function updateLinkTools() {
@@ -1387,11 +1649,19 @@
       applyFilter();
     }
 
-    function renderCategoryOptions() {
-      newLinkCategory.innerHTML = categoryNames
+    function renderCategoryOptions(selected = "Personal", target = newLinkCategory) {
+      const names = getCategoryNames();
+      target.innerHTML = names
         .map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
         .join("");
-      newLinkCategory.value = "Personal";
+      target.value = names.some((name) => sameCategoryName(name, selected))
+        ? names.find((name) => sameCategoryName(name, selected))
+        : "Personal";
+    }
+
+    function renderAllCategoryOptions(selected = "Personal") {
+      renderCategoryOptions(selected, newLinkCategory);
+      renderCategoryOptions(selected, moveLinkCategory);
     }
 
     const hostFromUrl = (url) => {
@@ -1439,6 +1709,7 @@
           <span class="card-controls">
             <button class="move-link" type="button" data-move-id="${escapeHtml(link.id)}" data-move-context="${escapeHtml(context)}" data-move-direction="up" aria-label="Move ${escapeHtml(link.title)} up" title="Move up" ${index === 0 ? "disabled" : ""}>^</button>
             <button class="move-link" type="button" data-move-id="${escapeHtml(link.id)}" data-move-context="${escapeHtml(context)}" data-move-direction="down" aria-label="Move ${escapeHtml(link.title)} down" title="Move down" ${index === count - 1 ? "disabled" : ""}>v</button>
+            <button class="category-link" type="button" data-category-id="${escapeHtml(link.id)}" aria-label="Change category for ${escapeHtml(link.title)}" title="Change category">C</button>
             <button class="delete-link" type="button" data-delete-id="${escapeHtml(link.id)}" aria-label="Delete ${escapeHtml(link.title)}" title="Delete this link">x</button>
           </span>
         </article>
@@ -1450,7 +1721,9 @@
         return sortedLinks(allLinks.filter((link) => link.mostUsed), mostUsedContext);
       }
       const section = getSections().find((item) => item.name === context);
-      return section ? sortedLinks(section.links.filter((link) => !link.mostUsed || link.custom), context) : [];
+      return section
+        ? sortedLinks(section.links.filter((link) => !link.mostUsed || link.custom || link.recategorized), context)
+        : [];
     }
 
     function moveLink(id, context, direction) {
@@ -1473,6 +1746,83 @@
         .filter((linkId) => linkId !== id);
       linkOrder[context] = [id, ...ids];
       saveLinkOrder();
+    }
+
+    function removeLinkFromCategoryOrders(id) {
+      Object.keys(linkOrder).forEach((context) => {
+        if (context === mostUsedContext || !Array.isArray(linkOrder[context])) return;
+        linkOrder[context] = linkOrder[context].filter((linkId) => linkId !== id);
+      });
+      saveLinkOrder();
+    }
+
+    function addCategoryFromField() {
+      const category = ensureCategory(newCategoryName.value);
+      if (!category) {
+        showCategoryStatus("Enter a category name.", "error");
+        newCategoryName.focus();
+        return;
+      }
+      newCategoryName.value = "";
+      renderAllCategoryOptions(category);
+      showCategoryStatus(`${category} added.`, "success");
+      updateLinkTools();
+    }
+
+    function closeCategoryEditor() {
+      categoryEditLinkId = "";
+      categoryEditorPanel.classList.add("hidden");
+      categoryEditorForm.reset();
+      categoryEditorLinkName.textContent = "";
+      showMoveLinkStatus("");
+    }
+
+    function openCategoryEditor(id) {
+      const link = allLinks.find((item) => item.id === id);
+      if (!link) return;
+      categoryEditLinkId = id;
+      categoryEditorLinkName.textContent = link.title;
+      moveNewCategoryName.value = "";
+      renderAllCategoryOptions(link.category || "Personal");
+      showMoveLinkStatus("");
+      categoryEditorPanel.classList.remove("hidden");
+      categoryEditorPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      moveLinkCategory.focus();
+    }
+
+    function moveLinkToCategory(id, category) {
+      const link = allLinks.find((item) => item.id === id);
+      if (!link) return false;
+      let saved = false;
+      if (link.custom) {
+        customLinks = customLinks.map((item) =>
+          item.id === id ? { ...item, category } : item
+        );
+        saved = saveCustomLinks();
+      } else {
+        linkCategoryOverrides[id] = category;
+        saved = saveCategoryOverrides();
+      }
+
+      searchInput.value = "";
+      forcedOpenSection = category;
+      highlightedLinkId = id;
+      removeLinkFromCategoryOrders(id);
+      placeLinkFirst(id, category);
+      renderAllCategoryOptions(category);
+      showAddLinkStatus(
+        saved
+          ? `Moved "${link.title}" to ${category}.`
+          : `Moved "${link.title}" to ${category} for this tab. Use Download updated file to make it permanent.`,
+        saved ? "success" : "error"
+      );
+      renderPage();
+      revealLink(id);
+      return true;
+    }
+
+    function recategorizeLink(id) {
+      openCategoryEditor(id);
     }
 
     function attachCardHandlers(root = document) {
@@ -1512,6 +1862,12 @@
           moveLink(button.dataset.moveId, button.dataset.moveContext, button.dataset.moveDirection);
         });
       });
+
+      root.querySelectorAll("[data-category-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          recategorizeLink(button.dataset.categoryId);
+        });
+      });
     }
 
     function renderMostUsed() {
@@ -1526,7 +1882,7 @@
       sectionsRoot.innerHTML = getSections()
         .map((section, index) => {
           const sectionLinks = sortedLinks(
-            section.links.filter((link) => !link.mostUsed || link.custom),
+            section.links.filter((link) => !link.mostUsed || link.custom || link.recategorized),
             section.name
           );
           if (!sectionLinks.length) return "";
@@ -1619,7 +1975,7 @@
       history.scrollRestoration = "manual";
     }
 
-    renderCategoryOptions();
+    renderAllCategoryOptions();
     setDateLine();
     renderPage();
     showPageTop();
@@ -1643,6 +1999,8 @@
     });
 
     downloadPageFile.addEventListener("click", downloadUpdatedHtml);
+    addCategoryButton.addEventListener("click", addCategoryFromField);
+    cancelMoveLink.addEventListener("click", closeCategoryEditor);
 
     toggleCompact.addEventListener("click", () => {
       compactMode = !compactMode;
@@ -1653,8 +2011,10 @@
     cancelAddLink.addEventListener("click", () => {
       addLinkPanel.classList.add("hidden");
       addLinkForm.reset();
-      newLinkCategory.value = "Personal";
+      newCategoryName.value = "";
+      renderAllCategoryOptions("Personal");
       showAddLinkStatus("");
+      showCategoryStatus("");
     });
 
     clearAddedLinks.addEventListener("click", () => {
@@ -1700,9 +2060,15 @@
         return;
       }
 
-      const category = categoryNames.includes(newLinkCategory.value)
-        ? newLinkCategory.value
-        : "Personal";
+      const typedCategory = cleanCategoryName(newCategoryName.value);
+      const category = typedCategory
+        ? ensureCategory(typedCategory)
+        : getCategoryNames().find((name) => sameCategoryName(name, newLinkCategory.value)) || "Personal";
+      if (!category) {
+        showCategoryStatus("Enter a valid category name.", "error");
+        newCategoryName.focus();
+        return;
+      }
       const newLink = {
         id: `custom-${makeLinkId()}`,
         title,
@@ -1725,7 +2091,9 @@
       const persisted = saveCustomLinks();
       if (persisted) {
         addLinkForm.reset();
-        newLinkCategory.value = "Personal";
+        newCategoryName.value = "";
+        showCategoryStatus("");
+        renderAllCategoryOptions("Personal");
         addLinkPanel.classList.add("hidden");
         showAddLinkStatus(
           newLink.mostUsed
@@ -1741,6 +2109,28 @@
       }
       renderPage();
       revealLink(newLink.id);
+    });
+
+    categoryEditorForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!categoryEditLinkId) return;
+
+      const typedCategory = cleanCategoryName(moveNewCategoryName.value);
+      const category = typedCategory
+        ? ensureCategory(typedCategory)
+        : getCategoryNames().find((name) => sameCategoryName(name, moveLinkCategory.value)) || "Personal";
+      if (!category) {
+        showMoveLinkStatus("Enter a valid category name.", "error");
+        moveNewCategoryName.focus();
+        return;
+      }
+
+      const moved = moveLinkToCategory(categoryEditLinkId, category);
+      if (moved) {
+        closeCategoryEditor();
+      } else {
+        showMoveLinkStatus("That link could not be moved.", "error");
+      }
     });
 
     window.addEventListener("keydown", (event) => {
